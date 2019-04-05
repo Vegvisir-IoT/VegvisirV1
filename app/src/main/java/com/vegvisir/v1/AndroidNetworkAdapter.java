@@ -1,12 +1,14 @@
 package com.vegvisir.v1;
 
 import android.content.Context;
+import android.support.v4.util.Pair;
 
 import com.vegvisir.gossip.adapter.NetworkAdapter;
 import com.vegvisir.network.datatype.proto.Payload;
 import com.vegvisir.vegvisir_lower_level.network.Exceptions.ConnectionNotAvailableException;
 import com.vegvisir.vegvisir_lower_level.network.Network;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -45,7 +47,7 @@ public class AndroidNetworkAdapter implements NetworkAdapter {
      */
     @Override
     public void broadCast(Payload payload) {
-
+        /*TODO: Implement this in the future */
     }
 
     /**
@@ -55,7 +57,13 @@ public class AndroidNetworkAdapter implements NetworkAdapter {
      */
     @Override
     public void onReceiveBlock(BiConsumer<String, Payload> handler) {
-
+        new Thread(() -> {
+            for (;;) {
+                /* Keep running to take new data */
+                Pair<String, Payload> data = network.waitingData();
+                handler.accept(data.first, data.second);
+            }
+        }).start();
     }
 
     /**
@@ -65,7 +73,7 @@ public class AndroidNetworkAdapter implements NetworkAdapter {
      */
     @Override
     public List<String> getAvailableConnections() {
-        return null;
+        return Arrays.asList(network.waitingConnection());
     }
 
     /**
