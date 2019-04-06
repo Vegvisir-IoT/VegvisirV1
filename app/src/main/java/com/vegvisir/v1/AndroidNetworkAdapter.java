@@ -8,18 +8,25 @@ import com.vegvisir.network.datatype.proto.Payload;
 import com.vegvisir.vegvisir_lower_level.network.Exceptions.ConnectionNotAvailableException;
 import com.vegvisir.vegvisir_lower_level.network.Network;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class AndroidNetworkAdapter implements NetworkAdapter {
 
     /* Android google nearby abstract interface for sending and receiving messages */
     private Network network;
 
+    private Deque<String> connectionHistory;
+
 
     public AndroidNetworkAdapter(Context context, String id) {
         network = new Network(context, id);
+        connectionHistory = new ArrayDeque<>();
     }
 
 
@@ -67,13 +74,33 @@ public class AndroidNetworkAdapter implements NetworkAdapter {
     }
 
     /**
+     * [NEW THREAD] Register a handler for a lost of connection.
+     *
+     * @param handler
+     */
+    @Override
+    public void onConnectionLost(Consumer<String> handler) {
+        new Thread(() -> {
+            for (;;) {
+                try {
+                    handler.accept(network.getDisconnectedId());
+                } catch (InterruptedException ex) {
+                    return;
+                }
+            }
+        });
+    }
+
+    /**
      * [BLOCKING] if there is no connection available.
      *
      * @return a set of remote ids with which this node has been established connection.
      */
     @Override
     public List<String> getAvailableConnections() {
-        return Arrays.asList(network.waitingConnection());
+        String remoteid = network.waitingConnection();
+        connectionHistory.add(remoteid);
+        return Arrays.asList(remoteid);
     }
 
     /**
@@ -82,5 +109,19 @@ public class AndroidNetworkAdapter implements NetworkAdapter {
     @Override
     public List<String> getNearbyDevices() {
         return null;
+    }
+
+    /**
+     * Disconnect to a particular endpoint. Disconnecting should only happen after all data have been sent to the remote side.
+     *
+     * @param endpoint
+     */
+    @Override
+    public void disconnect(String endpoint) {
+        network.disconnect(endpoint);
+    }
+
+    public Deque<String> getConnectionHistory() {
+        return connectionHistory;
     }
 }

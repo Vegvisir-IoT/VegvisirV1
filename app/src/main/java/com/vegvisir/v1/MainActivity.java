@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     VegvisirCore core;
     Thread coreThread;
+    AndroidNetworkAdapter adapter;
     private long lastBlock = new Date().getTime();
 
     @Override
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "onCreate: Pass Permission");
 
         /* Create a network adapter for android */
-        AndroidNetworkAdapter adapter = new AndroidNetworkAdapter(getApplicationContext(), "id"+this.hashCode());
+        adapter = new AndroidNetworkAdapter(getApplicationContext(), "id"+this.hashCode());
 
         Log.i(TAG, "onCreate: Adpater Created!");
 
@@ -71,13 +72,15 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            Log.d(TAG, "onCreate: Rendering Block list");
+//            Log.d(TAG, "onCreate: Rendering Block list");
             runOnUiThread(this::updateBlockView);
         }, 0, 1, TimeUnit.SECONDS);
 
         initActions();
 
         Log.i(TAG, "onCreate: Action Initialized!");
+
+        updateBanner();
     }
 
     /**
@@ -95,10 +98,21 @@ public class MainActivity extends AppCompatActivity {
             String id = b.getVegvisirBlock().getBlock().getUserid();
             Date d = new Date(b.getVegvisirBlock().getBlock().getTimestamp().getUtcTime());
             TextView view = new TextView(layout.getContext());
-            view.append("[" + i + "] " + id + " : " + d.toString());
+            view.setText("[" + i + "] " + id + " : " + d.toString());
             layout.addView(view);
 
         }
+    }
+
+    private void updateBanner() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            String banner = !adapter.getConnectionHistory().isEmpty() ? adapter.getConnectionHistory().getLast() : "No Peer Available";
+//            Log.i(TAG, "updateBanner: Banner updating with "+banner);
+            runOnUiThread(() -> {
+                TextView view = findViewById(R.id.banner);
+                view.setText(banner);
+            });
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     /**
