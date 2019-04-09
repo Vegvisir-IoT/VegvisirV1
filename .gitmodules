@@ -1,9 +1,6 @@
 [submodule "deps/Vegvisir-Android-Lower-Level"]
 	path = deps/Vegvisir-Android-Lower-Level
 	url = git@github.com:Vegvisir-IoT/Vegvisir-Android-Lower-Level.git
-[submodule "deps/Vegvisir-Gossip"]
-	path = deps/Vegvisir-Gossip
-	url = git@github.com:JASONews/Vegvisir-Gossip.git
 [submodule "deps/Vegvisir-Core"]
 	path = deps/Vegvisir-Core
 	url = git@github.com:Vegvisir-IoT/Vegvisir-Core.git
